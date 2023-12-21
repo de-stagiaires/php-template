@@ -1,0 +1,15 @@
+{
+    "name": "stagaires/php-template",
+    "autoload": {
+        "psr-4": {
+            "Stagaires\\PhpTemplate\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Kyrill van Fessem",
+            "email": "kyrillvanfessem@hotmail.nl"
+        }
+    ],
+    "require": {}
+}

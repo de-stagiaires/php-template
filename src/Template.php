@@ -1,4 +1,5 @@
 <?php
+
 namespace Stagaires\PhpTemplate;
 
 use Stagaires\PhpTemplate\Exception\TemplateNotFoundException;
@@ -15,15 +16,13 @@ class Template
     /**
      * @throws TemplateNotFoundException
      */
-    public function render(string $template, array $data = []): string
+    public function render(string $template, array $data = []) : void
     {
         $path = $this->getTemplatePath($template);
         $this->validateTemplate($path);
 
         $content = $this->getTemplateContent($path);
-        $content = $this->modifyTemplateContent($content);
-
-        return $this->renderTemplate($content, $data);
+        echo $this->renderTemplate($content, $data);
     }
 
     private function getTemplatePath(string $template): string
@@ -46,16 +45,28 @@ class Template
         return file_get_contents($path);
     }
 
-    private function modifyTemplateContent(string $content): string
-    {
-        return str_replace('{{', '<?= ', str_replace('}}', ' ?>', $content));
-    }
-
     private function renderTemplate(string $content, array $data): string
     {
-        extract($data);
-        ob_start();
-        require $content;
-        return ob_get_clean();
+        $content = preg_replace_callback('/{{\s*foreach\s+(\$\w+)\s+as\s+(\$\w+)\s*}}(.*?){{\s*endforeach\s*}}/s', function ($matches) use ($data) {
+            $output = '';
+            $array = $data[ltrim($matches[1], '$')];
+
+            foreach ($array as $item) {
+                $data[$matches[2]] = $item; // Set the current item in the loop as a variable
+                $output .= $this->renderTemplate($matches[3], $data); // Recursively render the loop content
+            }
+
+            return $output;
+        }, $content);
+
+        $placeholders = [];
+        foreach ($data as $key => $value) {
+            $placeholders[] = '{{ $' . $key . ' }}';
+        }
+
+        $content = str_replace($placeholders, array_values($data), $content);
+
+        return $content;
     }
+
 }
