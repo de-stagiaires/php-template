@@ -8,7 +8,7 @@ class Template
 {
     private string $path;
 
-    public function __construct($path)
+    public function __construct($path = __DIR__ . '/views')
     {
         $this->path = $path;
     }
