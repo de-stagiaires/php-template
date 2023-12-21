@@ -16,7 +16,7 @@ class Template
     /**
      * @throws TemplateNotFoundException
      */
-    public function render(string $template, array $data = []) : void
+    public function render(string $template, array $data = []): void
     {
         $path = $this->getTemplatePath($template);
         $this->validateTemplate($path);
@@ -45,28 +45,47 @@ class Template
         return file_get_contents($path);
     }
 
+
     private function renderTemplate(string $content, array $data): string
     {
-        $content = preg_replace_callback('/{{\s*foreach\s+(\$\w+)\s+as\s+(\$\w+)\s*}}(.*?){{\s*endforeach\s*}}/s', function ($matches) use ($data) {
-            $output = '';
-            $array = $data[ltrim($matches[1], '$')];
 
-            foreach ($array as $item) {
-                $data[$matches[2]] = $item; // Set the current item in the loop as a variable
-                $output .= $this->renderTemplate($matches[3], $data); // Recursively render the loop content
-            }
-
-            return $output;
-        }, $content);
-
-        $placeholders = [];
-        foreach ($data as $key => $value) {
-            $placeholders[] = '{{ $' . $key . ' }}';
-        }
-
-        $content = str_replace($placeholders, array_values($data), $content);
+        $content = $this->replaceForeachPlaceholders($content, $data);
+        $content = $this->replacePlaceholders($content, $data);
 
         return $content;
     }
 
+    private function replacePlaceholders(string $content, array $data): string
+    {
+        foreach ($data as $key => $value) {
+            $placeholder = '{{ $' . $key . ' }}';
+
+            if (is_array($value)) {
+                $value = implode('', $value);
+            }
+
+            $content = str_replace($placeholder, $value, $content);
+        }
+
+        return $content;
+    }
+
+    private function replaceForeachPlaceholders(string $content, array $data): string
+    {
+       return preg_replace_callback('/{{\s*foreach\s+(\$\w+)\s+as\s+(\$\w+)\s*}}(.*?){{\s*endforeach\s*}}/s', function ($matches) use ($data) {
+            $output = '';
+            $array = $data[ltrim($matches[1], '$')];
+            $loopVar = ltrim($matches[2], '$');
+
+            foreach ($array as $item) {
+                $loopData = $data;
+                $loopData[$loopVar] = $item;
+                $output .= $this->replacePlaceholders($matches[3], $loopData);
+            }
+            return $output;
+        }, $content);
+    }
+
+
 }
+

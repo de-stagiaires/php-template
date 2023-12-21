@@ -12,8 +12,8 @@
 
 <h2>{{ $test }}</h2>
 <p> {{ $test2 }}</p>
-
 {{ foreach $products as $product }}
+
     <p>{{ $product }}</p>
 {{ endforeach }}
 </body>
