@@ -55,6 +55,6 @@ To use a file as a template, you can use the following syntax:
 To use a block in a template file, you can use the following syntax:
 ```php
 {{ block "block name" }}
-    {{ $variable }}
+    <p>Block content</p>
 {{ endblock }}
 ```

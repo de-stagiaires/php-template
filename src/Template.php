@@ -7,6 +7,7 @@ use Stagaires\PhpTemplate\Exception\TemplateNotFoundException;
 class Template
 {
     private string $path;
+    private array $blocks = [];
 
     public function __construct($path = __DIR__ . '/views')
     {
@@ -48,11 +49,12 @@ class Template
 
     private function renderTemplate(string $content, array $data): string
     {
-
+        $content = $this->extendPlaceholders($content);
         $content = $this->replaceForeachPlaceholders($content, $data);
+        $content = $this->captureBlockPlaceholders($content); // New method to capture blocks
+        $content = $this->replaceBlockPlaceholders($content);
         $content = $this->replacePlaceholders($content, $data);
-
-        return $content;
+        return $this->removeBlockPlaceholders($content);
     }
 
     private function replacePlaceholders(string $content, array $data): string
@@ -86,6 +88,40 @@ class Template
         }, $content);
     }
 
+    private function extendPlaceholders(string $content): string
+    {
+        return preg_replace_callback('/{{\s*extends\s+\'(\w+)\'\s*}}/s', function ($matches) {
+            $template = $matches[1];
+            $path = $this->getTemplatePath($template);
+            $this->validateTemplate($path);
+            return $this->getTemplateContent($path);
+        }, $content);
+    }
 
+    private function captureBlockPlaceholders(string $content): string
+    {
+        preg_replace_callback('/{{\s*block\s+"(\w+)"\s*}}(.*?){{\s*endblock\s*}}/s', function ($matches) {
+            $blockName = $matches[1];
+            $blockContent = $matches[2];
+
+            $this->blocks[$blockName] = $blockContent;
+        }, $content);
+
+        return $content;
+    }
+
+    private function replaceBlockPlaceholders(string $content): string
+    {
+        foreach ($this->blocks as $blockName => $blockContent) {
+            $blockPlaceholder = "{{ block \"$blockName\" }}{{ endblock }}";
+            $content = str_replace($blockPlaceholder, $blockContent, $content);
+        }
+
+        return $content;
+    }
+    private function removeBlockPlaceholders(string $content): string
+    {
+        return preg_replace('/{{\s*block\s+".*?"\s*}}(.*?){{\s*endblock\s*}}/s', '', $content);
+    }
 }
 

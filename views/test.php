@@ -1,20 +1,12 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-<body>
+{{ extends 'app' }}
+
 <h1>{{ $test }}</h1>
-<p>{{ $test2 }}</p>
+{{ block "title" }}Home{{ endblock }}
 
-
-<h2>{{ $test }}</h2>
-<p> {{ $test2 }}</p>
-{{ foreach $products as $product }}
-
-    <p>{{ $product }}</p>
-{{ endforeach }}
-</body>
-</html>
+{{ block "body" }}
+<h1>Welcome</h1>
+<p>
+    lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus. Suspendisse lectus tortor, dignissim sit amet, adipiscing nec, ultricies sed, dolor. Cras elementum ultrices diam. Maecenas ligula massa, varius a, semper
+    congue, euismod non, mi. Proin porttitor, orci nec nonummy molestie, enim est eleifend mi, non fermentum diam
+</p>
+{{ endblock }}
