@@ -51,6 +51,7 @@ class Template
     {
         $content = $this->extendPlaceholders($content);
         $content = $this->replaceForeachPlaceholders($content, $data);
+        $content = $this->replaceIfElsePlaceholders($content, $data);
         $content = $this->captureBlockPlaceholders($content); // New method to capture blocks
         $content = $this->replaceBlockPlaceholders($content);
         $content = $this->replacePlaceholders($content, $data);
@@ -106,7 +107,6 @@ class Template
 
             $this->blocks[$blockName] = $blockContent;
         }, $content);
-
         return $content;
     }
 
@@ -122,6 +122,22 @@ class Template
     private function removeBlockPlaceholders(string $content): string
     {
         return preg_replace('/{{\s*block\s+".*?"\s*}}(.*?){{\s*endblock\s*}}/s', '', $content);
+    }
+    private function replaceIfElsePlaceholders(string $content, array $data): string
+    {
+        return preg_replace_callback(
+            '/{{ if ((\$\w*)) == "(.*?)" }}(.*){{ endif }}/s', function ($matches) use ($data) {
+            $variable = ltrim($matches[1], '$');
+            $conditionValue = $matches[3];
+            $variableValue = $data[$variable] ?? null;
+            $replaceable = $matches[4];
+            if ($variableValue !== $conditionValue) {
+                return '';
+            }
+            return $replaceable;
+        },
+            $content
+        );
     }
 }
 
