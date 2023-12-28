@@ -63,11 +63,22 @@ class Template
         foreach ($data as $key => $value) {
             $placeholder = '{{ $' . $key . ' }}';
 
-            if (is_array($value)) {
-                $value = implode('', $value);
-            }
 
-            $content = str_replace($placeholder, $value, $content);
+            if (is_array($value)) {
+                foreach ($value as $subKey => $subValue) {
+                    $subPlaceholder = '{{ $' . $key . '->' . $subKey . ' }}';
+
+                    if (is_array($subValue)) {
+                        $this->replacePlaceholders($content, $subValue);
+                    }
+                    else{
+                        $content = str_replace($subPlaceholder, $subValue, $content);
+                    }
+                }
+            }
+            else{
+                $content = str_replace($placeholder, $value, $content);
+            }
         }
 
         return $content;
@@ -91,7 +102,7 @@ class Template
 
     private function extendPlaceholders(string $content): string
     {
-        return preg_replace_callback('/{{\s*extends\s+\'(\w+)\'\s*}}/s', function ($matches) {
+        return preg_replace_callback('~{{\s*extend\s+\'(\w+\/\w+)\'\s*}}~s', function ($matches) {
             $template = $matches[1];
             $path = $this->getTemplatePath($template);
             $this->validateTemplate($path);
@@ -104,7 +115,6 @@ class Template
         preg_replace_callback('/{{\s*block\s+"(\w+)"\s*}}(.*?){{\s*endblock\s*}}/s', function ($matches) {
             $blockName = $matches[1];
             $blockContent = $matches[2];
-
             $this->blocks[$blockName] = $blockContent;
         }, $content);
         return $content;
