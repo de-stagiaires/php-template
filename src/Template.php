@@ -126,16 +126,47 @@ class Template
     private function replaceIfElsePlaceholders(string $content, array $data): string
     {
         return preg_replace_callback(
-            '/{{ if ((\$\w*)) == "(.*?)" }}(.*){{ endif }}/s', function ($matches) use ($data) {
-            $variable = ltrim($matches[1], '$');
-            $conditionValue = $matches[3];
-            $variableValue = $data[$variable] ?? null;
-            $replaceable = $matches[4];
-            if ($variableValue !== $conditionValue) {
+            '/{{ *if +((\$\w+)) *== *"([^"]*)" *}}(.*?)(?:{{ *elseif +((\$\w+)) *== *"([^"]*)" *}}(.*?))?(?:{{ *else *}}(.*?))?{{ *endif *}}/s',
+            function ($matches) use ($data) {
+                $conditions = [];
+
+                $conditions[] = [
+                    'variable' => ltrim($matches[1], '$'),
+                    'value' => $matches[3],
+                    'content' => $matches[4],
+                ];
+
+                if (isset($matches[6])) {
+                    $conditions[] = [
+                        'variable' => ltrim($matches[6], '$'),
+                        'value' => $matches[7],
+                        'content' => $matches[8],
+                    ];
+                }
+
+                if (isset($matches[9])) {
+                    $conditions[] = [
+                        'variable' => null,
+                        'value' => null,
+                        'content' => $matches[9],
+                    ];
+                }
+
+                foreach ($conditions as $condition) {
+                    $variable = $condition['variable'];
+                    $conditionValue = $condition['value'];
+                    $content = $condition['content'];
+                    if ($variable === null) {
+                        return $content;
+                    }
+
+                    $variableValue = $data[$variable] ?? null;
+                    if ($variableValue === $conditionValue) {
+                        return $content;
+                    }
+                }
                 return '';
-            }
-            return $replaceable;
-        },
+            },
             $content
         );
     }
