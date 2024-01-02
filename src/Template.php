@@ -129,6 +129,7 @@ class Template
 
         return $content;
     }
+
     private function removeBlockPlaceholders(string $content): string
     {
         return preg_replace('/{{\s*block\s+".*?"\s*}}(.*?){{\s*endblock\s*}}/s', '', $content);
