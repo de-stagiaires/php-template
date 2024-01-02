@@ -86,7 +86,7 @@ class Template
 
     private function replaceForeachPlaceholders(string $content, array $data): string
     {
-       return preg_replace_callback('/{{\s*foreach\s+(\$\w+)\s+as\s+(\$\w+)\s*}}(.*?){{\s*endforeach\s*}}/s', function ($matches) use ($data) {
+        return preg_replace_callback('/{{\s*foreach\s+(\$\w+)\s+as\s+(\$\w+)\s*}}(.*?){{\s*endforeach\s*}}/s', function ($matches) use ($data) {
             $output = '';
             $array = $data[ltrim($matches[1], '$')];
             $loopVar = ltrim($matches[2], '$');
@@ -129,7 +129,6 @@ class Template
 
         return $content;
     }
-
     private function removeBlockPlaceholders(string $content): string
     {
         return preg_replace('/{{\s*block\s+".*?"\s*}}(.*?){{\s*endblock\s*}}/s', '', $content);
