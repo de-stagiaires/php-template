@@ -52,7 +52,7 @@ class Template
         $content = $this->extendPlaceholders($content);
         $content = $this->replaceForeachPlaceholders($content, $data);
         $content = $this->replaceIfElsePlaceholders($content, $data);
-        $content = $this->captureBlockPlaceholders($content); // New method to capture blocks
+        $content = $this->captureBlockPlaceholders($content);
         $content = $this->replaceBlockPlaceholders($content);
         $content = $this->replacePlaceholders($content, $data);
         return $this->removeBlockPlaceholders($content);
@@ -81,7 +81,7 @@ class Template
             }
         }
 
-        return $content;
+        return htmlspecialchars($content, ENT_QUOTES, 'UTF-8');
     }
 
     private function replaceForeachPlaceholders(string $content, array $data): string
@@ -102,7 +102,7 @@ class Template
 
     private function extendPlaceholders(string $content): string
     {
-        return preg_replace_callback('~{{\s*extend\s+\'(\w+\/\w+)\'\s*}}~s', function ($matches) {
+        return preg_replace_callback('/{{\s*extend\s+\'(\w+)\'\s*}}/s', function ($matches) {
             $template = $matches[1];
             $path = $this->getTemplatePath($template);
             $this->validateTemplate($path);
